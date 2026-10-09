@@ -17,7 +17,10 @@ export async function GET(request: Request) {
   if (!hasValidSession(request)) return reply({ error: 'Acesso expirado.' }, 401);
   try {
     const { data, error } = await database().from('designers').select('*').order('nome');
-    if (error) return reply({ error: 'Não foi possível carregar os perfis.' }, 500);
+    if (error) {
+      console.error('[api/designers] GET Supabase error:', error.message, error.code, error.details, error.hint);
+      return reply({ error: 'Não foi possível carregar os perfis.' }, 500);
+    }
     return reply(data);
   } catch { return reply({ error: 'O acesso ao banco não está configurado na Vercel.' }, 503); }
 }
@@ -29,7 +32,10 @@ export async function POST(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     if (typeof body.nome !== 'string' || !body.nome.trim()) return reply({ error: 'Informe o nome do designer.' }, 400);
     const { data, error } = await database().from('designers').insert(editableFields(body)).select().single();
-    if (error) return reply({ error: 'Não foi possível salvar o perfil.' }, 400);
+    if (error) {
+      console.error('[api/designers] POST Supabase error:', error.message, error.code, error.details, error.hint);
+      return reply({ error: 'Não foi possível salvar o perfil.' }, 400);
+    }
     return reply(data, 201);
   } catch { return reply({ error: 'Não foi possível conectar ao banco.' }, 503); }
 }
