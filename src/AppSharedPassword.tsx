@@ -24,6 +24,37 @@ import { emptyDesigner, interestTags, type Designer } from './types';
 
 type Page = 'overview' | 'team' | 'interests';
 
+const SQUAD_OPTIONS = [
+  'Squad 3 - Iza',
+  'Squad 2 - Gi',
+  'Squad 1 - Carlinha',
+  'Squad 4 - davila',
+  'Squad 5 - Leticiia',
+];
+
+const CLIENT_OPTIONS: Record<string, string[]> = {
+  Clientes: [
+    'ÁguaVerde', 'Canal Like', 'Dália', 'Orla Rio', 'Plaza Santa Cruz',
+    'Parque Dom Pedro', 'Road', 'Santa Marta', 'Teatro Multiplan', 'Temakeria',
+    'Unipar', 'Villa Lobos', 'VillageMall', 'Martins', 'VTEXDAY', 'Wosi',
+    'Bienal do Livro Rio', 'Elibré', 'Farmalife', 'Fundação Oscar', 'Gás Verde',
+    'GL Events', 'Instituto Reação', 'Jujuba Playz', 'Justa Saúde', 'M2 Eventos',
+    'Memorial do Carmo', 'NeuroEvidencia', 'Prêmio Isabel Salgado', 'RAF',
+    'Rosário', 'Roxy', 'Saveiros', 'SLS', 'Staytement', 'Tamoio',
+    'The Simple Gym', 'The Simple Run', 'YA Boi',
+  ],
+  'Núcleo CBF': ['Seleção Feminina', 'Brasileirão', 'Copa do Brasil', 'Brasileiras'],
+};
+
+const INTEREST_OPTIONS = [
+  'Branding',
+  'Pesquisa e estratégia',
+  'Mídia Off',
+  'Mídia Digital',
+  'Motion Design',
+  'Edição de Vídeo',
+];
+
 const initials = (s: string) =>
   s.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || 'D';
 
@@ -799,6 +830,8 @@ function Editor({
   const [delivery, setDelivery] = useState('');
   const [level, setLevel] = useState(3);
   const [saving, setSaving] = useState(false);
+  const [clientChoice, setClientChoice] = useState('');
+  const [interestChoice, setInterestChoice] = useState('');
 
   const set = (k: keyof Designer, v: unknown) =>
     setF(old => ({ ...old, [k]: v }));
@@ -862,12 +895,53 @@ function Editor({
                 />
               </Field>
               <Field label="Squad">
-                <input value={f.squad} onChange={e => set('squad', e.target.value)} />
+                <select value={f.squad} onChange={e => set('squad', e.target.value)}>
+                  <option value="">Selecione uma squad</option>
+                  {f.squad && !SQUAD_OPTIONS.includes(f.squad) && (
+                    <option value={f.squad}>{f.squad}</option>
+                  )}
+                  {SQUAD_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
+                </select>
               </Field>
             </div>
-            <Field label="Clientes · separados por vírgula">
-              <input value={list('clientes')} onChange={e => setList('clientes', e.target.value)} />
-            </Field>
+            <div className="delivery">
+              <Field label="Selecione um cliente">
+                <select value={clientChoice} onChange={e => setClientChoice(e.target.value)}>
+                  <option value="">Escolha uma opção</option>
+                  {Object.entries(CLIENT_OPTIONS).map(([group, options]) => (
+                    <optgroup key={group} label={group}>
+                      {options.map(option => <option key={option} value={option}>{option}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              </Field>
+              <button
+                type="button"
+                className="btn outline"
+                onClick={() => {
+                  if (clientChoice && !f.clientes.includes(clientChoice)) {
+                    set('clientes', [...f.clientes.filter(Boolean), clientChoice]);
+                  }
+                  setClientChoice('');
+                }}
+              >
+                <Plus size={14} /> Adicionar
+              </button>
+            </div>
+            <div className="delivery-tags">
+              {f.clientes.filter(Boolean).map((client, index) => (
+                <span key={`${client}-${index}`}>
+                  {client}
+                  <button
+                    type="button"
+                    aria-label={`Remover ${client}`}
+                    onClick={() => set('clientes', f.clientes.filter(item => item !== client))}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
           </fieldset>
 
           <fieldset>
@@ -937,9 +1011,40 @@ function Editor({
 
           <fieldset>
             <legend>04 · Interesses e desenvolvimento</legend>
-            <Field label="Áreas de interesse · separados por vírgula">
-              <input value={list('interesses')} onChange={e => setList('interesses', e.target.value)} />
-            </Field>
+            <div className="delivery">
+              <Field label="Selecione uma área de interesse">
+                <select value={interestChoice} onChange={e => setInterestChoice(e.target.value)}>
+                  <option value="">Escolha uma opção</option>
+                  {INTEREST_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
+                </select>
+              </Field>
+              <button
+                type="button"
+                className="btn outline"
+                onClick={() => {
+                  if (interestChoice && !f.interesses.includes(interestChoice)) {
+                    set('interesses', [...f.interesses.filter(Boolean), interestChoice]);
+                  }
+                  setInterestChoice('');
+                }}
+              >
+                <Plus size={14} /> Adicionar
+              </button>
+            </div>
+            <div className="delivery-tags">
+              {f.interesses.filter(Boolean).map((interest, index) => (
+                <span key={`${interest}-${index}`}>
+                  {interest}
+                  <button
+                    type="button"
+                    aria-label={`Remover ${interest}`}
+                    onClick={() => set('interesses', f.interesses.filter(item => item !== interest))}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
             <Field label="Descrição dos interesses">
               <textarea rows={2} value={f.interessesTxt} onChange={e => set('interessesTxt', e.target.value)} />
             </Field>
