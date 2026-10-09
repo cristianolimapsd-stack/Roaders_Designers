@@ -25,25 +25,29 @@ import { emptyDesigner, interestTags, type Designer } from './types';
 type Page = 'overview' | 'team' | 'interests';
 
 const SQUAD_OPTIONS = [
-  'Squad 3 - Iza',
-  'Squad 2 - Gi',
   'Squad 1 - Carlinha',
+  'Squad 2 - Gi',
+  'Squad 3 - Iza',
   'Squad 4 - davila',
   'Squad 5 - Leticiia',
 ];
 
 const CLIENT_OPTIONS: Record<string, string[]> = {
-  Clientes: [
+  'Núcleo A': [
     'ÁguaVerde', 'Canal Like', 'Dália', 'Orla Rio', 'Plaza Santa Cruz',
     'Parque Dom Pedro', 'Road', 'Santa Marta', 'Teatro Multiplan', 'Temakeria',
     'Unipar', 'Villa Lobos', 'VillageMall', 'Martins', 'VTEXDAY', 'Wosi',
+  ],
+  'Núcleo B': [
     'Bienal do Livro Rio', 'Elibré', 'Farmalife', 'Fundação Oscar', 'Gás Verde',
     'GL Events', 'Instituto Reação', 'Jujuba Playz', 'Justa Saúde', 'M2 Eventos',
     'Memorial do Carmo', 'NeuroEvidencia', 'Prêmio Isabel Salgado', 'RAF',
     'Rosário', 'Roxy', 'Saveiros', 'SLS', 'Staytement', 'Tamoio',
     'The Simple Gym', 'The Simple Run', 'YA Boi',
   ],
-  'Núcleo CBF': ['Seleção Feminina', 'Brasileirão', 'Copa do Brasil', 'Brasileiras'],
+  'Núcleo CBF': [
+    'Seleção Feminina', 'Brasileirão', 'Copa do Brasil', 'Brasileiras',
+  ],
 };
 
 const INTEREST_OPTIONS = [
@@ -54,6 +58,21 @@ const INTEREST_OPTIONS = [
   'Motion Design',
   'Edição de Vídeo',
 ];
+
+const DEVELOPMENT_OPTIONS: Record<string, string[]> = {
+  'Técnica': [
+    'Apresentação',
+    'IA',
+    'Layout',
+    'Motion Graphic',
+    'Defesa de Projeto',
+    'Ferramentas e Processos',
+    'Branding',
+    'Edição de vídeo',
+    'Criatividade',
+  ],
+  'Soft': ['Comunicação', 'Inovação', 'Proatividade'],
+};
 
 const initials = (s: string) =>
   s.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || 'D';
@@ -112,7 +131,11 @@ export default function AppSharedPassword() {
   }, [message]);
 
   const squads = useMemo(
-    () => [...new Set(designers.map(d => d.squad).filter(Boolean))].sort(),
+    () => {
+      const registered = [...new Set(designers.map(d => d.squad).filter(Boolean))];
+      const additional = registered.filter(s => !SQUAD_OPTIONS.includes(s)).sort();
+      return [...SQUAD_OPTIONS, ...additional];
+    },
     [designers],
   );
 
@@ -438,7 +461,25 @@ export default function AppSharedPassword() {
                   <PanelTitle label="NOSSO TIME" title="Pessoas por squad" />
                   {squads.length ? (
                     squads.map((s, i) => (
-                      <div className="squad-row" key={s}>
+                      <div
+                        className="squad-row"
+                        key={s}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Ver equipe da ${s}`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setSquad(s);
+                          setPage('team');
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSquad(s);
+                            setPage('team');
+                          }
+                        }}
+                      >
                         <i className={`dot d${i % 4}`} />
                         <span>{s}</span>
                         <div className="track">
@@ -832,6 +873,7 @@ function Editor({
   const [saving, setSaving] = useState(false);
   const [clientChoice, setClientChoice] = useState('');
   const [interestChoice, setInterestChoice] = useState('');
+  const [developmentChoice, setDevelopmentChoice] = useState('');
 
   const set = (k: keyof Designer, v: unknown) =>
     setF(old => ({ ...old, [k]: v }));
@@ -1048,9 +1090,44 @@ function Editor({
             <Field label="Descrição dos interesses">
               <textarea rows={2} value={f.interessesTxt} onChange={e => set('interessesTxt', e.target.value)} />
             </Field>
-            <Field label="Temas para desenvolver · separados por vírgula">
-              <input value={list('desenvolver')} onChange={e => setList('desenvolver', e.target.value)} />
-            </Field>
+            <div className="delivery">
+              <Field label="Área de desenvolvimento">
+                <select value={developmentChoice} onChange={e => setDevelopmentChoice(e.target.value)}>
+                  <option value="">Escolha uma opção</option>
+                  {Object.entries(DEVELOPMENT_OPTIONS).map(([group, options]) => (
+                    <optgroup key={group} label={group}>
+                      {options.map(option => <option key={option} value={option}>{option}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              </Field>
+              <button
+                type="button"
+                className="btn outline"
+                onClick={() => {
+                  if (developmentChoice && !f.desenvolver.includes(developmentChoice)) {
+                    set('desenvolver', [...f.desenvolver.filter(Boolean), developmentChoice]);
+                  }
+                  setDevelopmentChoice('');
+                }}
+              >
+                <Plus size={14} /> Adicionar
+              </button>
+            </div>
+            <div className="delivery-tags">
+              {f.desenvolver.filter(Boolean).map((area, index) => (
+                <span key={`${area}-${index}`}>
+                  {area}
+                  <button
+                    type="button"
+                    aria-label={`Remover ${area}`}
+                    onClick={() => set('desenvolver', f.desenvolver.filter(item => item !== area))}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
             <Field label="Descrição do desenvolvimento">
               <textarea rows={2} value={f.desenvolverTxt} onChange={e => set('desenvolverTxt', e.target.value)} />
             </Field>
