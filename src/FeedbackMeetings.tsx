@@ -5,6 +5,7 @@ import { interestTags } from './types';
 import './feedback-meetings.css';
 
 type Tab = 'feedback' | 'meetings';
+type FeedbackHistoryMode = 'month' | 'all';
 const dateNow = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const monthNow = () => dateNow().slice(0, 7);
 const scoreFields = [
@@ -39,6 +40,8 @@ export function FeedbackMeetings({ designers, initialTab = 'feedback', singleTab
   const [editingFeedback, setEditingFeedback] = useState<FeedbackRecord | null>(null);
   const [editingMeeting, setEditingMeeting] = useState<OneOnOneRecord | null>(null);
   const [historyPerson, setHistoryPerson] = useState('');
+  const [feedbackHistoryMode, setFeedbackHistoryMode] = useState<FeedbackHistoryMode>('month');
+  const [feedbackHistoryMonth, setFeedbackHistoryMonth] = useState(monthNow());
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [feedbackPerson, setFeedbackPerson] = useState('');
@@ -63,7 +66,10 @@ export function FeedbackMeetings({ designers, initialTab = 'feedback', singleTab
   const selectedFeedbackPerson = designers.find(d => d.id === feedbackPerson);
   const selectedMeetingPerson = designers.find(d => d.id === meetingPerson);
   const personById = useMemo(() => new Map(designers.map(d => [d.id, d])), [designers]);
-  const visibleFeedbacks = useMemo(() => feedbacks.filter(f => !historyPerson || f.designer_id === historyPerson), [feedbacks, historyPerson]);
+  const visibleFeedbacks = useMemo(() => feedbacks
+    .filter(f => (!historyPerson || f.designer_id === historyPerson) && (feedbackHistoryMode === 'all' || f.periodo === feedbackHistoryMonth))
+    .sort((a, b) => b.periodo.localeCompare(a.periodo) || String(b.created_at || '').localeCompare(String(a.created_at || ''))),
+    [feedbacks, historyPerson, feedbackHistoryMode, feedbackHistoryMonth]);
   const visibleMeetings = useMemo(() => meetings.filter(m => !historyPerson || m.designer_id === historyPerson), [meetings, historyPerson]);
 
   async function saveFeedback(e: FormEvent) {
@@ -99,7 +105,7 @@ export function FeedbackMeetings({ designers, initialTab = 'feedback', singleTab
         <label className="record-field"><span>Comentários</span><textarea rows={3} value={feedbackComments} onChange={e => setFeedbackComments(e.target.value)}/></label>
         <div className="record-form-actions">{editingFeedback && <button type="button" className="record-secondary" onClick={() => { setEditingFeedback(null); setFeedbackPerson(''); setPeriod(monthNow()); setNote(8); setEvolution('melhorou'); setPositive(''); setAttention(''); setFeedbackComments(''); }}>Cancelar edição</button>}<button className="record-primary" disabled={busy || !feedbackPerson}>{busy ? 'Salvando…' : editingFeedback ? 'Atualizar feedback' : 'Salvar feedback'}</button></div>
       </form>
-      <div className="record-history"><h3>Histórico mensal</h3><label className="record-field history-filter"><span>Ver histórico de</span><select value={historyPerson} onChange={e => setHistoryPerson(e.target.value)}><option value="">Todos os designers</option>{designers.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}</select></label><p className="history-count">{visibleFeedbacks.length} {visibleFeedbacks.length === 1 ? 'feedback' : 'feedbacks'}</p>{visibleFeedbacks.length ? visibleFeedbacks.map(f => <article className="record-card" key={f.id}><header><div><b>{personById.get(f.designer_id)?.nome || 'Designer'}</b><small>{f.periodo} · {f.cargo || personById.get(f.designer_id)?.funcao || 'Cargo não informado'}</small></div><div className="record-actions"><strong>{Number(f.nota).toLocaleString('pt-BR')}/10</strong><button type="button" onClick={() => editFeedback(f)}>Editar</button><button type="button" className="delete" onClick={() => deleteRecord('feedback', f.id)}>Excluir</button></div></header><span className={`evolution ${f.evolucao}`}>{f.evolucao === 'melhorou' ? 'Melhorou' : f.evolucao === 'manteve' ? 'Manteve' : 'Pontos de atenção'}</span>{f.pontos_positivos && <p><b>Positivos:</b> {f.pontos_positivos}</p>}{f.pontos_atencao && <p><b>Atenção:</b> {f.pontos_atencao}</p>}{f.comentarios && <p>{f.comentarios}</p>}</article>) : <p className="records-empty">{historyPerson ? 'Esse designer ainda não tem feedback registrado.' : 'Os feedbacks salvos aparecerão aqui.'}</p>}</div>
+      <div className="record-history"><h3>Histórico de feedbacks</h3><div className="feedback-history-tabs" role="tablist" aria-label="Visualização do histórico"><button type="button" className={feedbackHistoryMode === 'month' ? 'selected' : ''} onClick={() => setFeedbackHistoryMode('month')}>Histórico mensal</button><button type="button" className={feedbackHistoryMode === 'all' ? 'selected' : ''} onClick={() => setFeedbackHistoryMode('all')}>Histórico completo</button></div>{feedbackHistoryMode === 'month' && <label className="record-field history-filter"><span>Selecionar mês</span><input type="month" value={feedbackHistoryMonth} onChange={e => setFeedbackHistoryMonth(e.target.value)}/></label>}<label className="record-field history-filter"><span>Ver histórico de</span><select value={historyPerson} onChange={e => setHistoryPerson(e.target.value)}><option value="">Todos os designers</option>{designers.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}</select></label><p className="history-count">{visibleFeedbacks.length} {visibleFeedbacks.length === 1 ? 'feedback' : 'feedbacks'}</p>{visibleFeedbacks.length ? visibleFeedbacks.map(f => <article className="record-card" key={f.id}><header><div><b>{personById.get(f.designer_id)?.nome || 'Designer'}</b><small>{f.periodo} · {f.cargo || personById.get(f.designer_id)?.funcao || 'Cargo não informado'}</small></div><div className="record-actions"><strong>{Number(f.nota).toLocaleString('pt-BR')}/10</strong><button type="button" onClick={() => editFeedback(f)}>Editar</button><button type="button" className="delete" onClick={() => deleteRecord('feedback', f.id)}>Excluir</button></div></header><span className={`evolution ${f.evolucao}`}>{f.evolucao === 'melhorou' ? 'Melhorou' : f.evolucao === 'manteve' ? 'Manteve' : 'Pontos de atenção'}</span>{f.pontos_positivos && <p><b>Positivos:</b> {f.pontos_positivos}</p>}{f.pontos_atencao && <p><b>Atenção:</b> {f.pontos_atencao}</p>}{f.comentarios && <p>{f.comentarios}</p>}</article>) : <p className="records-empty">{feedbackHistoryMode === 'month' ? 'Não há feedbacks para este designer neste mês.' : 'Ainda não há feedbacks registrados.'}</p>}</div>
     </div> : <div className="records-layout">
       <form className="record-form" onSubmit={saveMeeting}><h3>{editingMeeting ? 'Editar reunião 1:1' : 'Registrar reunião 1:1'}</h3><label className="record-field"><span>Designer</span><DesignerSelect designers={designers} value={meetingPerson} onChange={setMeetingPerson}/></label><PersonContext designer={selectedMeetingPerson}/><label className="record-field"><span>Data</span><input required type="date" value={meetingDate} onChange={e => setMeetingDate(e.target.value)}/></label>
         <label className="record-field"><span>Descrição · o que a pessoa trouxe na conversa</span><textarea rows={4} value={description} onChange={e => setDescription(e.target.value)} placeholder="Assuntos, contexto e encaminhamentos…"/></label><label className="record-field"><span>Comentários</span><textarea rows={3} value={meetingComments} onChange={e => setMeetingComments(e.target.value)}/></label>
