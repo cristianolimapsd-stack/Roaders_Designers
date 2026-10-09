@@ -7,7 +7,6 @@ type Page='overview'|'team'|'interests';
 const initials=(s:string)=>s.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'D';
 const date=(s:string)=>s?new Date(`${s.slice(0,10)}T12:00:00`).toLocaleDateString('pt-BR'):'Não informado';
 const blank=()=>({id:'',...emptyDesigner()}) as Designer;
-const listFields:[keyof Designer,string][]=[['clientes','Clientes'],['gostos','Gostos e repertório'],['ferramentas','Ferramentas'],['interesses','Áreas de interesse'],['desenvolver','Temas para desenvolver']];
 
 export default function App(){
  const [page,setPage]=useState<Page>('overview'),[designers,setDesigners]=useState<Designer[]>([]),[loading,setLoading]=useState(true),[session,setSession]=useState<any>(null),[admin,setAdmin]=useState(false),[query,setQuery]=useState(''),[squad,setSquad]=useState('Todas as squads'),[selected,setSelected]=useState<Designer|null>(null),[editor,setEditor]=useState<Designer|null>(null),[login,setLogin]=useState(false),[mobile,setMobile]=useState(false),[message,setMessage]=useState('');
