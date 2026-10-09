@@ -377,7 +377,7 @@ export default function AppSharedPassword() {
                 <Stat
                   icon={<BriefcaseBusiness />}
                   label="Clientes atendidos"
-                  value={new Set(designers.flatMap(x => x.clientes)).size}
+                  value={designers.reduce((total, designer) => total + designer.clientes.length, 0)}
                   tint="green"
                 />
                 <Stat
