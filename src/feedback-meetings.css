@@ -66,3 +66,6 @@
 @media(max-width:850px){.records-layout{grid-template-columns:1fr}.analytics-grid{grid-template-columns:1fr}.record-history{max-height:560px}}
 @media(max-width:520px){.record-form,.record-history,.analytics-card{padding:13px}.rating-grid{grid-template-columns:1fr}.record-two{gap:8px}.mini-bar{grid-template-columns:minmax(65px,1fr) minmax(55px,1.4fr) 24px;gap:6px}.records-heading h2{font-size:19px}}
 @media(max-width:640px){.workspace-records-page{padding:0 14px 20px}}
+.history-filter{display:flex;flex-direction:column;gap:6px;margin:14px 0 8px}
+.history-filter>span{color:#6f6a7d;font-size:12px}
+.history-count{margin:0 0 12px;color:#858196;font-size:12px}
