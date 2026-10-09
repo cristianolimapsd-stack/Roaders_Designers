@@ -1,4 +1,6 @@
 .records-block,.records-dashboard{margin:24px 0 30px;color:#24233a}
+.workspace-records-page{box-sizing:border-box;width:100%;max-width:1420px;margin:0 auto;padding:0 28px 30px}
+.app.records-route .content{display:none!important}
 .records-heading{display:flex;justify-content:space-between;align-items:flex-start;margin:0 0 15px}
 .records-heading small{display:block;color:#7960d8;font-size:10px;font-weight:700;letter-spacing:.14em}
 .records-heading h2{margin:7px 0 5px;font-size:22px;letter-spacing:-.035em}
@@ -27,6 +29,11 @@
 .record-card header div{display:flex;flex-direction:column;gap:3px}
 .record-card header small{color:#858196;font-size:11px}
 .record-card header strong{color:#5d43d1;font-size:14px;white-space:nowrap}
+.record-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.record-actions button,.record-secondary{padding:5px 8px;border:1px solid #e4e0ec;border-radius:7px;background:#fff;color:#5d48c5;font:inherit;font-size:10px;font-weight:600;cursor:pointer}
+.record-actions button.delete{color:#b74b45;border-color:#f1d8d5}
+.record-form-actions{display:flex;gap:8px;align-items:center}
+.record-form-actions .record-primary{flex:1}
 .record-card p{margin:8px 0;color:#656276;white-space:pre-wrap;overflow-wrap:anywhere}
 .evolution{display:inline-flex;padding:3px 8px;border-radius:99px;background:#eff8f1;color:#438453;font-size:10px;font-weight:700}
 .evolution.manteve{background:#fff7e8;color:#a56d15}.evolution.atencao{background:#fff0ee;color:#b84b42}
@@ -58,3 +65,4 @@
 .mini-bar>b{text-align:right;color:#4d4961;font-size:10px}
 @media(max-width:850px){.records-layout{grid-template-columns:1fr}.analytics-grid{grid-template-columns:1fr}.record-history{max-height:560px}}
 @media(max-width:520px){.record-form,.record-history,.analytics-card{padding:13px}.rating-grid{grid-template-columns:1fr}.record-two{gap:8px}.mini-bar{grid-template-columns:minmax(65px,1fr) minmax(55px,1.4fr) 24px;gap:6px}.records-heading h2{font-size:19px}}
+@media(max-width:640px){.workspace-records-page{padding:0 14px 20px}}
