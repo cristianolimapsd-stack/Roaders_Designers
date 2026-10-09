@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { clearSessionCookie, createSessionCookie, hasValidSession, isSameOrigin } from '../server/session';
+import { clearSessionCookie, createSessionCookie, hasValidSession, isSameOrigin } from '../server/session.js';
 
 const reply = (body: unknown, status = 200, headers: HeadersInit = {}) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
 const failedLogins = new Map<string, { count: number; resetAt: number }>();
