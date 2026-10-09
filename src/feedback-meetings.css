@@ -72,3 +72,6 @@
 .feedback-history-tabs{display:flex;gap:8px;margin:0 0 12px;border-bottom:1px solid #e8e5ef}
 .feedback-history-tabs button{padding:9px 11px;border:0;border-bottom:2px solid transparent;background:transparent;color:#77748a;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
 .feedback-history-tabs button.selected{border-bottom-color:#6849e8;color:#5f40dc}
+.feedback-card-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.feedback-card-title>div{display:flex;flex-direction:column;gap:3px}
+.feedback-card-title .evolution{flex:none}
