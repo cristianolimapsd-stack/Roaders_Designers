@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { hasValidSession, isSameOrigin } from '../server/session';
+import { hasValidSession, isSameOrigin } from '../server/session.js';
 
 const reply = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 function database() {
