@@ -1,7 +1,7 @@
 export type Delivery = { tipo: string; nivel: number };
 
 export type Designer = {
-  id: string; nome: string; curto: string; funcao: string; email: string; admissao: string; squad: string;
+  id: string; nome: string; curto: string; funcao: string; email: string; admissao: string; squad: string; nucleo: string; foto_url: string;
   clientes: string[]; formacao: string; gostos: string[]; entregas: Delivery[]; teto: string; simultaneo: string;
   processo: string; ferramentas: string[]; briefings: string; interesses: string[]; interessesTxt: string;
   desenvolver: string[]; desenvolverTxt: string; obs: string; created_at?: string; updated_at?: string;
@@ -37,7 +37,7 @@ export type OneOnOneRecord = {
 };
 
 export const emptyDesigner = (): Omit<Designer, 'id'> => ({
-  nome: '', curto: '', funcao: '', email: '', admissao: '', squad: '', clientes: [], formacao: '', gostos: [],
+  nome: '', curto: '', funcao: '', email: '', admissao: '', squad: '', nucleo: 'Núcleo A', foto_url: '', clientes: [], formacao: '', gostos: [],
   entregas: [], teto: '', simultaneo: '', processo: '', ferramentas: [], briefings: '', interesses: [],
   interessesTxt: '', desenvolver: [], desenvolverTxt: '', obs: '',
 });
