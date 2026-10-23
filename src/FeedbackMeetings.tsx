@@ -23,11 +23,11 @@ async function api<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 function DesignerSelect({ designers, value, onChange }: { designers: Designer[]; value: string; onChange: (id: string) => void }) {
-  return <select required value={value} onChange={e => onChange(e.target.value)}><option value="">Selecione uma pessoa</option>{designers.map(d => <option key={d.id} value={d.id}>{d.nome} · {d.squad || 'Sem squad'}</option>)}</select>;
+  return <select required value={value} onChange={e => onChange(e.target.value)}><option value="">Selecione uma pessoa</option>{designers.map(d => <option key={d.id} value={d.id}>{d.nome} · {d.nucleo || 'Núcleo A'} · {d.squad || 'Sem squad'}</option>)}</select>;
 }
 function PersonContext({ designer }: { designer?: Designer }) {
   if (!designer) return null;
-  return <div className="record-person"><b>{designer.nome}</b><span>{designer.funcao || 'Cargo não informado'} · {designer.squad || 'Squad não informada'}</span><small>Clientes: {designer.clientes?.join(', ') || 'Nenhum informado'}</small></div>;
+  return <div className="record-person"><b>{designer.nome}</b><span>{designer.funcao || 'Cargo não informado'} · {designer.nucleo || 'Núcleo A'} · {designer.squad || 'Squad não informada'}</span><small>Clientes: {designer.clientes?.join(', ') || 'Nenhum informado'}</small></div>;
 }
 function Rating({ label, value, onChange }: { label: string; value: number | null; onChange: (v: number | null) => void }) {
   return <label className="record-field"><span>{label} (0 a 10)</span><select value={value ?? ''} onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}><option value="">Sem nota</option>{Array.from({ length: 11 }, (_, n) => <option value={n} key={n}>{n}</option>)}</select></label>;
@@ -68,14 +68,17 @@ export function FeedbackMeetings({ designers, initialTab = 'feedback', singleTab
   const selectedFeedbackPerson = designers.find(d => d.id === feedbackPerson);
   const selectedMeetingPerson = designers.find(d => d.id === meetingPerson);
   const personById = useMemo(() => new Map(designers.map(d => [d.id, d])), [designers]);
+  const designerIds = useMemo(() => new Set(designers.map(d => d.id)), [designers]);
   const visibleFeedbacks = useMemo(() => feedbacks
+    .filter(f => designerIds.has(f.designer_id))
     .filter(f => (!historyPerson || f.designer_id === historyPerson) && (feedbackHistoryMode === 'all' || f.periodo === feedbackHistoryMonth))
     .sort((a, b) => b.periodo.localeCompare(a.periodo) || String(b.created_at || '').localeCompare(String(a.created_at || ''))),
-    [feedbacks, historyPerson, feedbackHistoryMode, feedbackHistoryMonth]);
+    [feedbacks, designerIds, historyPerson, feedbackHistoryMode, feedbackHistoryMonth]);
   const visibleMeetings = useMemo(() => meetings
+    .filter(m => designerIds.has(m.designer_id))
     .filter(m => (!historyPerson || m.designer_id === historyPerson) && (meetingHistoryMode === 'all' || m.data_reuniao.slice(0, 7) === meetingHistoryMonth))
     .sort((a, b) => b.data_reuniao.localeCompare(a.data_reuniao) || String(b.created_at || '').localeCompare(String(a.created_at || ''))),
-    [meetings, historyPerson, meetingHistoryMode, meetingHistoryMonth]);
+    [meetings, designerIds, historyPerson, meetingHistoryMode, meetingHistoryMonth]);
 
   async function saveFeedback(e: FormEvent) {
     e.preventDefault(); setBusy(true); setNotice('');
@@ -133,18 +136,24 @@ function MiniBar({ label, value, tint = '', display }: { label: string; value: n
 export function FeedbackDashboard({ designers }: { designers: Designer[] }) {
   const [meetings, setMeetings] = useState<OneOnOneRecord[]>([]);
   useEffect(() => { api<OneOnOneRecord[]>('/api/meetings').then(setMeetings).catch(() => setMeetings([])); }, []);
+  const designerIds = useMemo(() => new Set(designers.map(d => d.id)), [designers]);
   const latest = useMemo(() => {
     const map = new Map<string, OneOnOneRecord>();
-    [...meetings].sort((a, b) => b.data_reuniao.localeCompare(a.data_reuniao)).forEach(m => { if (!map.has(m.designer_id)) map.set(m.designer_id, m); });
+    meetings.filter(m => designerIds.has(m.designer_id)).sort((a, b) => b.data_reuniao.localeCompare(a.data_reuniao)).forEach(m => { if (!map.has(m.designer_id)) map.set(m.designer_id, m); });
     return [...map.values()];
-  }, [meetings]);
-  const squadNames = useMemo(() => [...new Set(designers.map(d => d.squad).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'pt-BR', { numeric: true })), [designers]);
+  }, [meetings, designerIds]);
+  const squadGroups = useMemo(() => {
+    const groups = new Map<string, { key: string; label: string; ids: Set<string> }>();
+    const multipleNuclei = new Set(designers.map(d => d.nucleo || 'Núcleo A')).size > 1;
+    designers.filter(d => d.squad).forEach(d => { const nucleus = d.nucleo || 'Núcleo A'; const key = `${nucleus}::${d.squad}`; const group = groups.get(key) || { key, label: multipleNuclei ? `${nucleus} · ${d.squad}` : d.squad, ids: new Set<string>() }; group.ids.add(d.id); groups.set(key, group); });
+    return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { numeric: true }));
+  }, [designers]);
   const metricAverage = (records: OneOnOneRecord[], key: MetricKey) => average(records.map(r => r[key]));
   const interestCounts = useMemo(() => countLabels(designers.flatMap(interestTags)), [designers]);
   const developmentCounts = useMemo(() => countLabels(designers.flatMap(d => d.desenvolver || [])), [designers]);
   return <section className="records-dashboard"><div className="records-heading"><div><small>PULSO DO TIME</small><h2>Indicadores e repertório</h2><p>Médias das reuniões mais recentes de cada pessoa; o painel compara a equipe geral e cada squad.</p></div></div>
-    <div className="analytics-grid"><article className="analytics-card"><h3>Indicadores por squad</h3><p className="analytics-legend">Média de 0 a 10 · sobrecarga maior indica maior percepção de sobrecarga.</p>{!latest.length ? <div className="records-empty">As médias aparecerão depois das primeiras reuniões 1:1.</div> : pairKeys.map(pair => <section className="score-chart" key={pair.label}><h4>{pair.label}</h4>{[[pair.a, 'Individual'], [pair.b, 'Equipe']].map(([key, kind]) => <div className="score-series" key={key}><h5>{kind}</h5><MiniBar label="Geral" value={metricAverage(latest, key as MetricKey)} tint="purple"/>{squadNames.map(s => <MiniBar key={s} label={s} value={metricAverage(latest.filter(m => designers.find(d => d.id === m.designer_id)?.squad === s), key as MetricKey)}/>)}</div>)}</section>)}</article>
-    <article className="analytics-card"><h3>Integração do time</h3><p className="analytics-legend">Média das reuniões mais recentes.</p><MiniBar label="Equipe" value={metricAverage(latest, 'integracao_time')} tint="green"/>{squadNames.map(s => <MiniBar key={s} label={s} value={metricAverage(latest.filter(m => designers.find(d => d.id === m.designer_id)?.squad === s), 'integracao_time')} tint="green"/>)}</article>
+    <div className="analytics-grid"><article className="analytics-card"><h3>Indicadores por squad</h3><p className="analytics-legend">Média de 0 a 10 · sobrecarga maior indica maior percepção de sobrecarga.</p>{!latest.length ? <div className="records-empty">As médias aparecerão depois das primeiras reuniões 1:1.</div> : pairKeys.map(pair => <section className="score-chart" key={pair.label}><h4>{pair.label}</h4>{[[pair.a, 'Individual'], [pair.b, 'Equipe']].map(([key, kind]) => <div className="score-series" key={key}><h5>{kind}</h5><MiniBar label="Geral" value={metricAverage(latest, key as MetricKey)} tint="purple"/>{squadGroups.map(s => <MiniBar key={s.key} label={s.label} value={metricAverage(latest.filter(m => s.ids.has(m.designer_id)), key as MetricKey)}/>)}</div>)}</section>)}</article>
+    <article className="analytics-card"><h3>Integração do time</h3><p className="analytics-legend">Média das reuniões mais recentes.</p><MiniBar label="Equipe" value={metricAverage(latest, 'integracao_time')} tint="green"/>{squadGroups.map(s => <MiniBar key={s.key} label={s.label} value={metricAverage(latest.filter(m => s.ids.has(m.designer_id)), 'integracao_time')} tint="green"/>)}</article>
     <article className="analytics-card"><h3>Áreas para desenvolver</h3><p className="analytics-legend">Quantidade de pessoas que citaram cada tema.</p>{developmentCounts.length ? developmentCounts.slice(0, 8).map((x, i) => <MiniBar key={x.name} label={x.name} value={developmentCounts[0].count ? x.count / developmentCounts[0].count * 10 : 0} display={String(x.count)} tint={i % 2 ? 'orange' : ''}/>) : <div className="records-empty">Cadastre temas de desenvolvimento nos perfis.</div>}</article>
     <article className="analytics-card"><h3>Áreas principais de interesse</h3><p className="analytics-legend">Quantidade de pessoas que citaram cada tema.</p>{interestCounts.length ? interestCounts.slice(0, 8).map((x, i) => <MiniBar key={x.name} label={x.name} value={interestCounts[0].count ? x.count / interestCounts[0].count * 10 : 0} display={String(x.count)} tint={i % 2 ? 'purple' : ''}/>) : <div className="records-empty">Cadastre interesses nos perfis.</div>}</article></div>
   </section>;
