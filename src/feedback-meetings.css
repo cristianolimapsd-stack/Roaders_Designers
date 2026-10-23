@@ -107,3 +107,29 @@
 .profile-modal>footer{position:sticky;bottom:0;flex:none;background:#fff}
 @media(max-width:850px){.interest-overview-grid{grid-template-columns:1fr}.profile-overlay{padding:12px}.profile-modal{width:calc(100vw - 24px);height:calc(100vh - 24px);max-height:calc(100vh - 24px)}}
 @media(max-width:520px){.designer-photo-editor{align-items:flex-start;flex-wrap:wrap}.profile-modal .facts{display:grid;grid-template-columns:1fr 1fr}.pulse-teaser{grid-template-columns:34px 1fr 16px;padding:10px}.pulse-teaser>span{width:32px;height:32px}}
+
+/* Navegação por núcleo sempre visível e cartões da equipe em destaque. */
+.workspace-nuclei{display:flex;flex-direction:column;gap:8px;margin:12px 0 20px;padding:12px;border:1px solid #ebe7f4;border-radius:12px;background:#fff}
+.workspace-nuclei>small{color:#89859a;font-size:9px;font-weight:700;letter-spacing:.14em}
+.nucleus-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.nucleus-options button{min-width:0;padding:8px 5px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;color:#625e72;font:inherit;font-size:10px;font-weight:600;line-height:1.2;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.nucleus-options button:first-child{grid-column:1/-1}
+.nucleus-options button:hover{border-color:#b7a9f4;background:#f8f6ff;color:#563bd0}
+.nucleus-options button.selected{border-color:#6849e8;background:#f0ecff;color:#563bd0;box-shadow:inset 0 0 0 1px #6849e8}
+.nucleus-options button:focus-visible{outline:3px solid #d8ceff;outline-offset:2px}
+.content>.page-title{margin-bottom:20px}
+.content>.stats{margin-bottom:18px}
+.content>.recent{margin-top:0;margin-bottom:18px;padding:22px}
+.recent .panel-title{margin-bottom:16px}
+.recent .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),390px));gap:16px;justify-content:start}
+.recent .person,.team-cards .person{box-sizing:border-box;min-width:0;min-height:218px;padding:20px;border-radius:14px}
+.recent .person header,.team-cards .person header{margin-bottom:12px}
+.recent .person .avatar,.team-cards .person .avatar{width:56px;height:56px;font-size:16px}
+.recent .person h3,.team-cards .person h3{margin:0 0 5px;font-size:17px;line-height:1.3}
+.recent .person>p,.team-cards .person>p{font-size:12px;line-height:1.5}
+.recent .person .tags,.team-cards .person .tags{gap:7px;margin:12px 0}
+.recent .person .tags span,.team-cards .person .tags span{padding:5px 8px;font-size:10px}
+.recent .person>footer,.team-cards .person>footer{margin-top:auto;padding-top:11px;font-size:11px}
+.team-cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:18px}
+.content>.recent .empty{padding:24px}
+@media(max-width:700px){.workspace-nuclei{margin:10px 0 16px}.nucleus-options{grid-template-columns:repeat(2,minmax(0,1fr))}.nucleus-options button:first-child{grid-column:1/-1}.content>.recent{padding:16px}.recent .cards{grid-template-columns:1fr}.recent .person,.team-cards .person{min-height:0;padding:17px}.team-cards{grid-template-columns:1fr}}
