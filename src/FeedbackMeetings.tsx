@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Designer, FeedbackRecord, OneOnOneRecord } from './types';
-import { interestTags } from './types';
 import './feedback-meetings.css';
 
 type Tab = 'feedback' | 'meetings';
@@ -149,14 +148,9 @@ export function FeedbackDashboard({ designers }: { designers: Designer[] }) {
     return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { numeric: true }));
   }, [designers]);
   const metricAverage = (records: OneOnOneRecord[], key: MetricKey) => average(records.map(r => r[key]));
-  const interestCounts = useMemo(() => countLabels(designers.flatMap(interestTags)), [designers]);
-  const developmentCounts = useMemo(() => countLabels(designers.flatMap(d => d.desenvolver || [])), [designers]);
-  return <section className="records-dashboard"><div className="records-heading"><div><small>PULSO DO TIME</small><h2>Indicadores e repertório</h2><p>Médias das reuniões mais recentes de cada pessoa; o painel compara a equipe geral e cada squad.</p></div></div>
+  return <section className="records-dashboard"><div className="records-heading"><div><small>INDICADORES DO TIME</small><h2>Indicadores</h2><p>Médias das reuniões mais recentes de cada pessoa, comparadas por squad.</p></div></div>
     <div className="analytics-grid"><article className="analytics-card"><h3>Indicadores por squad</h3><p className="analytics-legend">Média de 0 a 10 · sobrecarga maior indica maior percepção de sobrecarga.</p>{!latest.length ? <div className="records-empty">As médias aparecerão depois das primeiras reuniões 1:1.</div> : pairKeys.map(pair => <section className="score-chart" key={pair.label}><h4>{pair.label}</h4>{[[pair.a, 'Individual'], [pair.b, 'Equipe']].map(([key, kind]) => <div className="score-series" key={key}><h5>{kind}</h5><MiniBar label="Geral" value={metricAverage(latest, key as MetricKey)} tint="purple"/>{squadGroups.map(s => <MiniBar key={s.key} label={s.label} value={metricAverage(latest.filter(m => s.ids.has(m.designer_id)), key as MetricKey)}/>)}</div>)}</section>)}</article>
     <article className="analytics-card"><h3>Integração do time</h3><p className="analytics-legend">Média das reuniões mais recentes.</p><MiniBar label="Equipe" value={metricAverage(latest, 'integracao_time')} tint="green"/>{squadGroups.map(s => <MiniBar key={s.key} label={s.label} value={metricAverage(latest.filter(m => s.ids.has(m.designer_id)), 'integracao_time')} tint="green"/>)}</article>
-    <article className="analytics-card"><h3>Áreas para desenvolver</h3><p className="analytics-legend">Quantidade de pessoas que citaram cada tema.</p>{developmentCounts.length ? developmentCounts.slice(0, 8).map((x, i) => <MiniBar key={x.name} label={x.name} value={developmentCounts[0].count ? x.count / developmentCounts[0].count * 10 : 0} display={String(x.count)} tint={i % 2 ? 'orange' : ''}/>) : <div className="records-empty">Cadastre temas de desenvolvimento nos perfis.</div>}</article>
-    <article className="analytics-card"><h3>Áreas principais de interesse</h3><p className="analytics-legend">Quantidade de pessoas que citaram cada tema.</p>{interestCounts.length ? interestCounts.slice(0, 8).map((x, i) => <MiniBar key={x.name} label={x.name} value={interestCounts[0].count ? x.count / interestCounts[0].count * 10 : 0} display={String(x.count)} tint={i % 2 ? 'purple' : ''}/>) : <div className="records-empty">Cadastre interesses nos perfis.</div>}</article></div>
+    </div>
   </section>;
 }
-
-function countLabels(values: string[]) { const m = new Map<string, number>(); values.map(x => x.trim()).filter(Boolean).forEach(x => m.set(x, (m.get(x) || 0) + 1)); return [...m].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'pt-BR')); }
